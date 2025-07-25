@@ -1,4 +1,3 @@
-st.caption("Your personal assistant for research and analysis, powered by Google Gemini.")
 import streamlit as st
 import asyncio
 from main import run_agent
