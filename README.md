@@ -38,7 +38,7 @@ An intelligent research assistant powered by Google Gemini, designed for advance
 
 ## How to Run
 
-Run the main application from the root directory:
+Run the Streamlit application from the `Hackathon` directory:
 ```bash
-python src/main.py
+streamlit run src/app.py
 ```
