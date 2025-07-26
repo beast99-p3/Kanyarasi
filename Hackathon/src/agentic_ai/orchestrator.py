@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from .agent import Agent
-from ..llm_client import GeminiClient
+from .llm_client import GeminiClient
 
 class Orchestrator:
     def __init__(self, api_key: str):
