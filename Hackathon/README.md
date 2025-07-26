@@ -1,13 +1,22 @@
-# Agentic AI App
+# Agentic AI Assistant
 
-This is a submission for the Agentic AI Hackathon.
+An intelligent research assistant powered by Google Gemini, designed for advanced research and analysis.
 
-## Setup
+## Features
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repo-url>
-    cd <your-repo-name>
+- 🤖 Advanced AI-powered research assistant
+- 🔍 Intelligent task planning and execution
+- 💡 Context-aware responses
+- 🧠 Long-term memory capabilities
+- 🛠️ Customizable agent behavior
+- 📊 Data visualization support
+
+## Setup Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/beast99-p3/Kanyarasi.git
+   cd Hackathon
     ```
 
 2.  **Create a virtual environment:**

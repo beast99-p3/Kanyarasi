@@ -6,6 +6,12 @@ class GeminiClient:
         print("\nInitializing Gemini Client...")
         print(f"API Key (first 4 chars): {api_key[:4]}...")
         
+        # Track API usage for free tier
+        self.daily_requests = 0
+        self.last_request_time = 0
+        self.free_tier_limit = 50  # Free tier daily limit
+        self.request_cooldown = 1.2  # Cooldown to respect 1 req/sec limit (60 req/min)
+        
         # Configure the API
         try:
             genai.configure(api_key=api_key)
@@ -109,20 +115,74 @@ class GeminiClient:
             self.initialize_model()
         
     def generate_text(self, prompt: str, max_retries=3) -> str:
+        # Enforce a cooldown to respect rate limits (e.g., 60 requests/minute)
+        time_since_last_request = time.time() - self.last_request_time
+        if time_since_last_request < self.request_cooldown:
+            wait_time = self.request_cooldown - time_since_last_request
+            print(f"Cooldown active. Waiting for {wait_time:.2f} seconds...")
+            time.sleep(wait_time)
+
+        # Check daily limit before proceeding
+        if self.daily_requests >= self.free_tier_limit:
+            return (
+                "⚠️ Daily free tier limit reached (50 requests/day). "
+                "Please wait for the quota to reset or upgrade to a paid tier."
+            )
+
         for attempt in range(max_retries):
             try:
-                response = self.model.generate_content(prompt)
+                # Minimal delay between retries
+                if attempt > 0:
+                    time.sleep(0.1)
+                
+                current_time = time.time()
+                
+                # Configure model for longer output
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature": 0.7,
+                        "top_p": 0.8,
+                        "top_k": 40,
+                        "max_output_tokens": 2048,
+                    },
+                    safety_settings=[
+                        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                    ]
+                )
+                
+                # Update tracking on successful request
+                self.last_request_time = current_time
+                self.daily_requests += 1
+                
+                # Log usage info to console for debugging, but don't return it to the agent
+                remaining = self.free_tier_limit - self.daily_requests
+                print(f"📊 Free tier usage: {self.daily_requests}/{self.free_tier_limit} requests today. {remaining} requests remaining.")
+                
                 return response.text
+                
             except Exception as e:
                 error_msg = str(e)
                 if "429" in error_msg:  # Rate limit error
-                    retry_info = "Please wait a minute and try again. The free tier limit is 50 requests per day."
+                    retry_info = (
+                        "Rate limit reached. The free tier has the following limits:\n"
+                        "- 50 requests per day\n"
+                        "- 1 request per second\n"
+                        f"Current usage: {self.daily_requests}/{self.free_tier_limit} requests today."
+                    )
                     print(f"Rate limit exceeded: {retry_info}")
                     if attempt < max_retries - 1:
-                        time.sleep(60)  # Wait 60 seconds before retry
+                        # Wait longer on rate limit error before retrying
+                        wait_on_error = (attempt + 1) * 2
+                        print(f"Waiting for {wait_on_error} seconds before retrying...")
+                        time.sleep(wait_on_error)
                         continue
-                    return f"Sorry, I've hit my rate limit. {retry_info}"
+                    return f"⚠️ {retry_info}"
                 else:
                     print(f"Gemini API Error: {e}")
                     return "Sorry, I couldn't process that request due to an API error."
-        return "Sorry, I couldn't process that request due to an API error."
+                    
+        return "Sorry, I couldn't process that request. Please try again in a few minutes."
