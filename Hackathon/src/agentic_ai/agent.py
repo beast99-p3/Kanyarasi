@@ -8,7 +8,7 @@ class Agent:
         self.memory = AgentMemory()
         self.tools = AgentTools()
         
-    async def process_goal(self, goal: str) -> Dict[str, Any]:
+    def process_goal(self, goal: str) -> Dict[str, Any]:
         self.memory.add_interaction("user", goal)
         
         planning_prompt = f"""Given this goal: '{goal}'
@@ -25,7 +25,7 @@ class Agent:
         results = []
         
         for step in steps:
-            tool_result = await self.tools.execute_step(step, self.llm)
+            tool_result = self.tools.execute_step(step, self.llm)
             results.append(tool_result)
             self.memory.add_interaction("tool", f"Step: {step}\nResult: {tool_result}")
         

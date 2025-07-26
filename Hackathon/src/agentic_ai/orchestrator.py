@@ -7,9 +7,9 @@ class Orchestrator:
         self.llm = GeminiClient(api_key)
         self.agent = Agent(self.llm)
     
-    async def process_request(self, goal: str) -> Dict[str, Any]:
+    def process_request(self, goal: str) -> Dict[str, Any]:
         try:
-            result = await self.agent.process_goal(goal)
+            result = self.agent.process_goal(goal)
             return {
                 "status": "success",
                 "data": result
