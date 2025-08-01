@@ -1,8 +1,5 @@
 # Demo Video
 
-## Video Link
-https://drive.google.com/file/d/1niceva4JNMOB1xPJgOSXrMmhsTVgQaf-/view?usp=sharing
-
 ## Timeline Breakdown
 
 ### 00:00-00:30 - Introduction & Setup
